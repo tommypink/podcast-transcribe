@@ -12,15 +12,16 @@
   },
   "dependencies": {
     "@notionhq/client": "^2.2.13",
+    "aws-sdk": "^2.1499.0",
     "axios": "^1.6.2",
+    "busboy": "^1.6.0",
+    "dotenv": "^16.3.1",
+    "formidable-serverless": "^1.1.1",
     "lucide-react": "^0.294.0",
     "openai": "^4.20.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-markdown": "^9.0.1",
-    "formidable-serverless": "^1.1.1",
-    "aws-sdk": "^2.1499.0",
-    "dotenv": "^16.3.1"
+    "react-markdown": "^9.0.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
