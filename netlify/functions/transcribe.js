@@ -1,50 +1,62 @@
-const { Configuration, OpenAIApi } = require('openai');
-const formidable = require('formidable-serverless');
-const fs = require('fs');
+import formidable from 'formidable-serverless';
+import AWS from 'aws-sdk';
+import fs from 'fs';
+import OpenAI from 'openai';
+import dotenv from 'dotenv';
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-const openai = new OpenAIApi(configuration);
+dotenv.config();
 
-exports.handler = async (event, context) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
-  }
+const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
-  const form = new formidable.IncomingForm();
+export const handler = async (event, context) => {
+  try {
+    console.log("Transcribe function called");
+    if (event.httpMethod !== 'POST') {
+      return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+    }
 
-  return new Promise((resolve, reject) => {
-    form.parse(event, async (err, fields, files) => {
-      if (err) {
-        return resolve({ statusCode: 500, body: JSON.stringify({ error: 'Error parsing form data' }) });
-      }
+    const form = new formidable.IncomingForm();
 
-      const audioFile = files.audio;
-      const context = fields.context;
-      const systemPrompt = fields.systemPrompt;
+    return new Promise((resolve, reject) => {
+      form.parse(event, async (err, fields, files) => {
+        if (err) {
+          return resolve({ statusCode: 500, body: JSON.stringify({ error: 'Error parsing form data' }) });
+        }
 
-      try {
-        const transcription = await openai.createTranscription(
-          fs.createReadStream(audioFile.path),
-          "whisper-1",
-          systemPrompt,
-          'text',
-          0.2,
-          'zh'
-        );
+        const audioFile = files.audio;
+        const context = fields.context;
+        const systemPrompt = fields.systemPrompt;
 
-        resolve({ 
-          statusCode: 200, 
-          body: JSON.stringify({ transcript: transcription.data })
-        });
-      } catch (error) {
-        console.error('Error during transcription:', error);
-        resolve({ 
-          statusCode: 500, 
-          body: JSON.stringify({ error: 'Transcription failed' })
-        });
-      }
+        try {
+          const transcription = await openai.createTranscription(
+            fs.createReadStream(audioFile.path),
+            "whisper-1",
+            systemPrompt,
+            'text',
+            0.2,
+            'zh'
+          );
+
+          console.log("Transcription completed:", transcription);
+
+          resolve({ 
+            statusCode: 200, 
+            body: JSON.stringify({ transcript: transcription.data })
+          });
+        } catch (error) {
+          console.error('Error during transcription:', error);
+          resolve({ 
+            statusCode: 500, 
+            body: JSON.stringify({ error: 'Transcription failed' })
+          });
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.error("Error in transcribe function:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: "Internal Server Error", details: error.message }),
+    };
+  }
 };
