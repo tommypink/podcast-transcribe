@@ -13,7 +13,7 @@ const NotionExport: React.FC<NotionExportProps> = ({ transcript }) => {
     setIsExporting(true);
     
     try {
-      const response = await fetch(`${config.apiUrl}/api/export-to-notion`, {
+      const response = await fetch(`${config.apiUrl}/export-to-notion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
